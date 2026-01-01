@@ -152,7 +152,7 @@ def Discriminator():
     a = MaxPooling2D(pool_size=(2, 2))(a) # (N, H/4, W/4, 128) -> (N, H/8, W/8, 128)
     a = Dropout(0.3)(a)
 
-    global_avarage_score = GlobalAveragePooling2D(name='score_pooling')(a) # (N, H/8, W/8, 128) -> (N, 128) -> (N, 1)
+    global_avarage_score = GlobalAveragePooling2D(name='score_pooling')(a) # (N, H/8, W/8, 128) -> (N, 128)
     score = Dense(1, name='score_dense', activation='sigmoid')(global_avarage_score) # (N, 128) -> (N, 1)
 
     return Model(inputs=Stego, outputs=score, name='ResnetSteganoGAN_discriminator')

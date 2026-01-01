@@ -123,10 +123,10 @@ class SteganoGAN(tf.keras.Model):
 
       decoder_accuracy = self.decoder_accuracy(messages, recovered_messages)
 
-      similarity_loss = self.similarity_loss_fn(cover_images, stego_images) * 100
+      similarity_loss = self.similarity_loss_fn(cover_images, stego_images)
       decoder_loss = self.decoder_loss_fn(messages, recovered_messages)
-      realism_loss = self.realism_loss_fn(stego_critic_scores) * 0.01
-      encoder_decoder_total_loss = similarity_loss + decoder_loss + realism_loss
+      realism_loss = self.realism_loss_fn(stego_critic_scores)
+      encoder_decoder_total_loss = 100 * similarity_loss + 1.0 * decoder_loss + 0.01 * realism_loss
 
     trainable_variables = self.encoder.trainable_variables + self.decoder.trainable_variables
     encoder_decoder_grads = encoder_decoder_tape.gradient(encoder_decoder_total_loss, trainable_variables)
@@ -138,8 +138,8 @@ class SteganoGAN(tf.keras.Model):
     self.decoder_loss_tracker.update_state(decoder_loss)
     self.decoder_accuracy_tracker.update_state(decoder_accuracy)
     self.realism_loss_tracker.update_state(realism_loss)
-    self.psnr_tracker.update_state(tf.image.psnr(cover_images, stego_images, max_val=1.0))
-    self.ssim_tracker.update_state(tf.image.ssim(cover_images, stego_images, max_val=1.0))
+    self.psnr_tracker.update_state(10 * tf.keras.ops.log10(4 / similarity_loss))
+    self.ssim_tracker.update_state(tf.image.ssim((cover_images + 1.0) / 2, (stego_images + 1.0) / 2, max_val=1.0))
     self.rs_bpp_tracker.update_state(self.data_depth * (2 * decoder_accuracy - 1))
     self.gradient_penalty_tracker.update_state(gp)
 
@@ -169,10 +169,10 @@ class SteganoGAN(tf.keras.Model):
 
     decoder_accuracy = self.decoder_accuracy(messages, recovered_messages)
 
-    similarity_loss = self.similarity_loss_fn(cover_images, stego_images) * 100
+    similarity_loss = self.similarity_loss_fn(cover_images, stego_images)
     decoder_loss = self.decoder_loss_fn(messages, recovered_messages)
-    realism_loss = self.realism_loss_fn(stego_critic_scores) * 0.01
-    encoder_decoder_total_loss = similarity_loss + decoder_loss + realism_loss
+    realism_loss = self.realism_loss_fn(stego_critic_scores)
+    encoder_decoder_total_loss = 100 * similarity_loss + 1.0 * decoder_loss + 0.01 * realism_loss
 
     cover_critic_scores = self.critic(cover_images, training=False)
     stego_critic_scores = self.critic(stego_images, training=False)
@@ -187,8 +187,8 @@ class SteganoGAN(tf.keras.Model):
     self.decoder_loss_tracker.update_state(decoder_loss)
     self.decoder_accuracy_tracker.update_state(decoder_accuracy)
     self.realism_loss_tracker.update_state(realism_loss)
-    self.psnr_tracker.update_state(tf.image.psnr(cover_images, stego_images, max_val=1.0))
-    self.ssim_tracker.update_state(tf.image.ssim(cover_images, stego_images, max_val=1.0))
+    self.psnr_tracker.update_state(10 * tf.keras.ops.log10(4 / similarity_loss))
+    self.ssim_tracker.update_state(tf.image.ssim((cover_images + 1.0) / 2, (stego_images + 1.0) / 2, max_val=1.0))
     self.rs_bpp_tracker.update_state(self.data_depth * (2 * decoder_accuracy - 1))
     self.gradient_penalty_tracker.update_state(gp)
 
